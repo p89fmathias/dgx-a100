@@ -1,10 +1,9 @@
-<code>
 git clone https://github.com/NVIDIA/deepops.git
 cd deepops
 git checkout tags/22.01
 
 ### fmathias - start - corrigindo a dashboard (memoria)
-curl https://raw.githubusercontent.com/p89fmathias/dgx-a100/main/dashboard-gpu-nodes.json src/dashboards/gpu-dashboard.json
+curl https://raw.githubusercontent.com/p89fmathias/dgx-a100/main/dashboard-gpu-nodes.json -o src/dashboards/gpu-dashboard.json
 ### fmathias - end
 
 ./scripts/setup.sh
@@ -36,4 +35,3 @@ sudo apt-get -y -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force
 ansible-playbook -K --forks=1 --connection=local -l slurm-cluster playbooks/slurm-cluster.yml
 sudo shutdown -r now
 ansible-playbook -K --forks=1 --connection=local -l slurm-cluster playbooks/slurm-cluster.yml
-</code>
