@@ -1,4 +1,4 @@
-
+<code>
 git clone https://github.com/NVIDIA/deepops.git
 cd deepops
 git checkout tags/22.01
@@ -36,3 +36,4 @@ sudo apt-get -y -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force
 ansible-playbook -K --forks=1 --connection=local -l slurm-cluster playbooks/slurm-cluster.yml
 sudo shutdown -r now
 ansible-playbook -K --forks=1 --connection=local -l slurm-cluster playbooks/slurm-cluster.yml
+</code>
