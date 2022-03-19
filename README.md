@@ -1,7 +1,7 @@
 DGX-A100
 ===
 
-  This repository is a tiny tutorial to install deepops and slurm-cluster from NVIDIA (https://github.com/NVIDIA/deepops)
+  This repository is a tiny tutorial to install deepops and slurm-cluster from NVIDIA (https://github.com/NVIDIA/deepops) in a ``DGX OS``.
 
   ### Pre-requisites
 
@@ -14,6 +14,8 @@ DGX-A100
   * Install DGX OS 5.2.0
   * Add a user called ``ubuntu``
   * Set hostname to ``dgx-a100``
+
+  **NOTE:** be sure to update on commands below, information such as ip address, user, hostname, etc
 
   ### Steps
 
@@ -55,9 +57,6 @@ exit
   * Config hostname on **[all]** region of inventory
   * Add the hostname to both **[slurm-master]** and **[slurm-node]** region
   * Uncomment lines on region **[all:vars]** wich tells ansible to use user ubuntu and our private key to log in
-  * Disable NFS server and NFS client config options
-  * Configure to install singularity package
-  * Configure the environment to allow ssh for our user ``ubuntu``
 
 ```bash
 sed -i 's|^\[all\]|[all]\ndgx-a100    ansible_host=192.168.1.245|gi' config/inventory
@@ -65,6 +64,14 @@ sed -i 's|^\[slurm-master\]|[slurm-master]\ndgx-a100|gi' config/inventory
 sed -i 's|^\[slurm-node\]|[slurm-node]\ndgx-a100|gi' config/inventory
 sed -i 's|^#ansible_user=ubuntu|ansible_user=ubuntu|gi' config/inventory
 sed -i 's|^#ansible_ssh_private_key_file|ansible_ssh_private_key_file|gi' config/inventory
+```
+
+
+  * Disable NFS server and NFS client config options in ``config/group_vars/slurm-cluster.yml``
+  * Configure to install singularity package in ``config/group_vars/slurm-cluster.yml``
+  * Configure the environment to allow ssh for our user ``ubuntu`` in ``config/group_vars/slurm-cluster.yml``
+
+```bash
 sed -i 's|^slurm_enable_nfs_server: true|slurm_enable_nfs_server: false|gi' config/group_vars/slurm-cluster.yml
 sed -i 's|^slurm_enable_nfs_client_nodes: true|slurm_enable_nfs_client_nodes: false|gi' config/group_vars/slurm-cluster.yml
 sed -i 's|^slurm_cluster_install_singularity: no|slurm_cluster_install_singularity: yes|gi' config/group_vars/slurm-cluster.yml
@@ -72,7 +79,9 @@ sed -i 's|^slurm_login_on_compute: false|slurm_login_on_compute: true|gi' config
 sed -i 's|^slurm_allow_ssh_user: \[\]|slurm_allow_ssh_user: \[ "ubuntu" \]|gi' config/group_vars/slurm-cluster.yml
 ```
 
-7. I have discovered that you need to add another region called **[slurm-metric]** right before **[slurm-cluster:children]** informing ansible to configure prometheus, grafana and node-exporter
+7. I have discovered that you need to add another region in ``config/invetory`` called **[slurm-metric]** right before **[slurm-cluster:children]** informing ansible to configure prometheus, grafana and node-exporter. Despite having an ansible condition ``hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"`` in ``playbooks/slurm-cluster.yml`` and having ``slurm_monitoring_group`` seted up, the playbook didn't installed monitoring tools. So, to fix that, I manually added the region in ``config/inventory``:
+
+
 ```bash
 sed -i 's|\[slurm-cluster:children\]|[slurm-metric]\ndgx-a100\n\n[slurm-cluster:children]|gi' config/inventory
 ```
@@ -89,7 +98,7 @@ sudo apt-get -y -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force
 ```
 
 10. After completing, we should run the recipe again:
-11. 
+
 ```bash
 ansible-playbook -K --forks=1 --connection=local -l slurm-cluster playbooks/slurm-cluster.yml
 ```
