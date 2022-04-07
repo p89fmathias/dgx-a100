@@ -28,7 +28,7 @@ git checkout tags/22.01
 ```
 
   2. (Optional) I don't know why, but it seems like grafana dashboard do not show memory panel, so I've made a tiny fix
-    
+
 ```bash
 curl https://raw.githubusercontent.com/p89fmathias/dgx-a100/main/dashboard-gpu-nodes.json -o src/dashboards/gpu-dashboard.json
 ```
@@ -77,6 +77,7 @@ sed -i 's|^slurm_enable_nfs_client_nodes: true|slurm_enable_nfs_client_nodes: fa
 sed -i 's|^slurm_cluster_install_singularity: no|slurm_cluster_install_singularity: yes|gi' config/group_vars/slurm-cluster.yml
 sed -i 's|^slurm_login_on_compute: false|slurm_login_on_compute: true|gi' config/group_vars/slurm-cluster.yml
 sed -i 's|^slurm_allow_ssh_user: \[\]|slurm_allow_ssh_user: \[ "ubuntu" \]|gi' config/group_vars/slurm-cluster.yml
+sed -i 's|^slurm_pyxis_version: 0.11.1|slurm_pyxis_version: 0.12.0|gi' config/group_vars/slurm-cluster.yml
 ```
 
 7. I have discovered that you need to add another region in ``config/invetory`` called **[slurm-metric]** right before **[slurm-cluster:children]** informing ansible to configure prometheus, grafana and node-exporter. Despite having an ansible condition ``hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"`` in ``playbooks/slurm-cluster.yml`` and having ``slurm_monitoring_group`` seted up, the playbook didn't installed monitoring tools. So, to fix that, I manually added the region in ``config/inventory``:
@@ -115,4 +116,10 @@ sudo shutdown -r now
 ansible-playbook -K --forks=1 --connection=local -l slurm-cluster playbooks/slurm-cluster.yml
 ```
 
-13. After the finishing process, we have now a working slurm cluster and grafana monitoring.
+13. Now, before start using, we should run a command to update pyxis and config enroot properly:
+
+```bash
+ansible-playbook -K --connection=local -i config/inventory playbooks/container/pyxis.yml -v
+```
+
+14. After the finishing process, we have now a working slurm cluster and grafana monitoring.
